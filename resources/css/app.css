@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        font-family: 'Roboto', sans-serif;
+    }
+
+    body {
+        @apply antialiased text-gray-800;
+    }
+}
+
+.swal-toast-custom {
+    font-family: inherit !important;
+    font-size: 14px !important;
+}
+
+[x-cloak] { display: none !important; }
+
+/* ===== LOADING SCREEN ===== */
+.erp-loading-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.dark .erp-loading-screen { background: #0f172a; }
+.erp-loading-screen.erp-loading-hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.erp-loading-inner { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.erp-loading-icon {
+    width: 64px; height: 64px; background: #eef3fc;
+    border-radius: 16px; display: flex; align-items: center; justify-content: center;
+}
+.erp-spinner {
+    width: 32px; height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #1a3a6e;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+.erp-loading-text { font-size: 13px; color: #94a3b8; font-family: sans-serif; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== SCROLLBAR HIDE ===== */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ===== SIDEBAR NAV ===== */
+.nav-section-label {
+    @apply text-[10px] text-[#a8c4f0] tracking-widest uppercase px-2 pt-3 pb-1 whitespace-nowrap overflow-hidden transition-opacity duration-200;
+}
+/* ===== SIDEBAR NAV ===== */
+.nav-link {
+    @apply flex items-center gap-2.5 px-2 py-2 rounded-lg text-white text-[13.5px]
+           hover:bg-white/10 hover:text-white transition-all duration-150 whitespace-nowrap;
+}
+.nav-link-active {
+    @apply bg-blue-500 !text-white hover:bg-blue-500;
+}
+.nav-link-active-collapse {
+    @apply bg-blue-500 !text-white hover:bg-blue-500 p-2;
+}
+.nav-icon {
+    @apply text-[13px] w-6 text-center flex-shrink-0;
+}
+.nav-label {
+    @apply overflow-hidden whitespace-nowrap transition-all duration-200 flex-1 min-w-0;
+}
+
+/* Submenu link — animasi geser ke kanan saat hover */
+.submenu-link {
+    @apply flex items-center gap-2 py-1.5 pl-9 pr-2 rounded-lg
+           text-white/55 text-[13px] whitespace-nowrap cursor-pointer
+           transition-all duration-200;
+    /* transform awal */
+    transform: translateX(0);
+}
+.submenu-link:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    transform: translateX(4px);
+}
+.submenu-link-active {
+    @apply text-white bg-[#1a3a6e]
+           shadow-sm
+           shadow-black/10
+           border border-white/5
+           transition-all duration-200;
+}
+.nav-chevron {
+    @apply text-[11px] transition-all duration-200 flex-shrink-0;
+}
+.nav-badge {
+    @apply bg-red-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full
+           transition-opacity duration-200 flex-shrink-0;
+}
+
+/* ===== HEADER ===== */
+.header-icon-btn {
+    @apply w-9 h-9 rounded-lg flex items-center justify-center text-slate-500
+           hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-400
+           hover:text-[#1a3a6e] dark:hover:text-slate-200 transition-colors;
+}
+.profile-menu-item {
+    @apply flex items-center gap-2.5 px-4 py-2 text-sm text-slate-600 dark:text-slate-300
+           hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer;
+}
