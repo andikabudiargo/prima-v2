@@ -33,11 +33,26 @@ new class extends Component {
     public string $form_name     = '';
     public string $form_note     = '';
     public bool   $form_status   = true;
+    public $dateType = '';
+    public $dateStart = null;
+    public $dateEnd = null;
 
     public function updatedSearch(): void         { $this->page = 1; }
     public function updatedStatusFilter(): void   { $this->page = 1; }
     public function updatedCategoryFilter(): void { $this->page = 1; }
     public function updatedPerPage(): void        { $this->page = 1; }
+
+    public function applyDateFilter($type, $start, $end)
+{
+    $this->dateType = $type;
+    $this->dateStart = $start;
+    $this->dateEnd = $end;
+}
+
+public function resetDateFilter()
+{
+    $this->reset(['dateType', 'dateStart', 'dateEnd']);
+}
 
     public function filterByCard(string $card): void
     {
@@ -81,6 +96,15 @@ new class extends Component {
             ->when($this->categoryFilter, fn($q) =>
                 $q->where('category', $this->categoryFilter)
             )
+            ->when($this->dateType, function ($q) {
+    if ($this->dateStart) {
+        $q->whereDate($this->dateType, '>=', $this->dateStart);
+    }
+
+    if ($this->dateEnd) {
+        $q->whereDate($this->dateType, '<=', $this->dateEnd);
+    }
+})
             ->orderBy('category')->orderBy('name')
             ->get();
     }
@@ -230,19 +254,19 @@ new class extends Component {
     {{-- Header --}}
     <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700">
         <div>
-            <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Unit of Measurement (UoM)</h2>
-            <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Kelola satuan pengukuran material</p>
+            <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Material Registration</h2>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Pendaftaran material baru ke sistem</p>
         </div>
         <button type="button" wire:click="openAddModal"
                 class="flex items-center gap-2 px-3 py-2 bg-[#1a3a6e] hover:bg-[#2251a3]
                        text-white text-xs font-medium rounded-lg transition-colors">
             <i class="fa-solid fa-plus"></i>
-            Add New UoM
+            Register Material
         </button>
     </div>
 
     {{-- Stats Cards --}}
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-4 gap-4">
 
         <button type="button" wire:click="filterByCard('total')"
                 @class(['text-left bg-white dark:bg-slate-800 rounded-xl border p-4 transition-all cursor-pointer',
@@ -250,7 +274,7 @@ new class extends Component {
                     'border-slate-200 dark:border-slate-700 hover:border-blue-300' => $activeCard !== 'total'])>
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-400 mb-1">Total UoM</p>
+                    <p class="text-xs text-slate-400 mb-1">Total</p>
                     <p class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ $this->stats['total'] }}</p>
                 </div>
                 <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
@@ -265,7 +289,22 @@ new class extends Component {
                     'border-slate-200 dark:border-slate-700 hover:border-green-300' => $activeCard !== 'active'])>
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-400 mb-1">Active</p>
+                    <p class="text-xs text-slate-400 mb-1">Draft</p>
+                    <p class="text-2xl font-bold text-green-600">{{ $this->stats['active'] }}</p>
+                </div>
+                <div class="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-circle-check text-green-500 text-lg"></i>
+                </div>
+            </div>
+        </button>
+
+        <button type="button" wire:click="filterByCard('active')"
+                @class(['text-left bg-white dark:bg-slate-800 rounded-xl border p-4 transition-all cursor-pointer',
+                    'border-green-400 ring-2 ring-green-200 dark:ring-green-800' => $activeCard === 'active',
+                    'border-slate-200 dark:border-slate-700 hover:border-green-300' => $activeCard !== 'active'])>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 mb-1">Submitted</p>
                     <p class="text-2xl font-bold text-green-600">{{ $this->stats['active'] }}</p>
                 </div>
                 <div class="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
@@ -280,7 +319,7 @@ new class extends Component {
                     'border-slate-200 dark:border-slate-700 hover:border-red-300' => $activeCard !== 'inactive'])>
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-400 mb-1">Non-Active</p>
+                    <p class="text-xs text-slate-400 mb-1">Registered</p>
                     <p class="text-2xl font-bold text-red-500">{{ $this->stats['inactive'] }}</p>
                 </div>
                 <div class="w-10 h-10 bg-red-50 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
@@ -422,10 +461,117 @@ new class extends Component {
     </div>
 </div>
 
+{{-- Date filter --}}
+<div 
+    x-data="{
+        open: false,
+        type: @entangle('dateType').defer,
+        start: @entangle('dateStart').defer,
+        end: @entangle('dateEnd').defer,
+    }"
+    class="relative"
+    wire:ignore
+>
+
+    {{-- Button --}}
+    <button type="button"
+        @click="open = !open"
+        @click.outside="
+    if (!$el.contains($event.target)) {
+        open = false
+    }
+"
+        class="h-9 px-3 flex items-center gap-2 border border-slate-200 dark:border-slate-600
+               bg-white dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300
+               hover:bg-slate-50 transition min-w-[160px]">
+
+        <span class="flex-1 text-left text-xs truncate">
+            <template x-if="!type && !start && !end">
+                <span>All Dates</span>
+            </template>
+            <template x-if="type || start || end">
+                <span x-text="`${type || 'Date'} • ${start || '...'} - ${end || '...'}`"></span>
+            </template>
+        </span>
+
+        <i class="fa-solid fa-calendar text-xs text-slate-400"></i>
+    </button>
+
+    {{-- Dropdown --}}
+    <div x-show="open"
+         x-transition
+         @click.stop
+          @mousedown.stop
+         class="absolute left-0 top-full mt-1 w-72 bg-white dark:bg-slate-800 border
+                border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-30 p-3 space-y-3">
+
+        {{-- Type selector --}}
+        <div>
+            <p class="text-[10px] text-slate-400 mb-1">Date Type</p>
+            <select x-model="type" @click.stop @mousedown.stop
+                class="w-full h-8 text-xs rounded-md border border-slate-200 dark:border-slate-600
+                       bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                
+                <option value="">All</option>
+                <option value="created_at">Created</option>
+                <option value="submitted_at">Submitted</option>
+                <option value="approved_at">Approved</option>
+                <option value="rejected_at">Rejected</option>
+                <option value="canceled_at">Canceled</option>
+            </select>
+        </div>
+
+        {{-- Date range --}}
+        <div class="grid grid-cols-2 gap-2">
+            <div>
+                <p class="text-[10px] text-slate-400 mb-1">Start</p>
+                <input type="date" x-model="start" @click.stop @mousedown.stop :max="new Date().toISOString().split('T')[0]"
+                    class="w-full h-8 text-xs rounded-md border border-slate-200 dark:border-slate-600
+                           bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+            </div>
+
+            <div>
+                <p class="text-[10px] text-slate-400 mb-1">End</p>
+                <input type="date" x-model="end" @click.stop @mousedown.stop :max="new Date().toISOString().split('T')[0]"
+                    class="w-full h-8 text-xs rounded-md border border-slate-200 dark:border-slate-600
+                           bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+            </div>
+        </div>
+
+        {{-- Actions --}}
+        <div class="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+
+            {{-- Reset --}}
+            <button type="button"
+                @click="
+                    type = '';
+                    start = '';
+                    end = '';
+                    $wire.resetDateFilter();
+                    open = false;
+                "
+                class="text-xs text-slate-400 hover:text-slate-600">
+                Reset
+            </button>
+
+            {{-- Apply --}}
+            <button type="button"
+                @click="
+                    $wire.applyDateFilter(type, start, end);
+                    open = false;
+                "
+                class="px-3 py-1 text-xs bg-[#1a3a6e] text-white rounded-md">
+                Apply
+            </button>
+
+        </div>
+    </div>
+</div>
+
             {{-- Search --}}
             <div class="relative flex-1 min-w-40">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
-                <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari kode atau nama..."
+                <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari kode registrasi atau nama..."
                        class="w-full pl-8 pr-3 h-9 text-xs border border-slate-200 dark:border-slate-600
                               bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-lg
                               outline-none focus:border-[#2251a3] focus:ring-2 focus:ring-[#2251a3]/10
@@ -469,15 +615,6 @@ new class extends Component {
                     <span class="hidden sm:inline">Export</span>
                 </button>
 
-                {{-- Upload --}}
-                <button type="button" wire:click="$toggle('showUpload')"
-                        class="h-8 px-3 flex items-center gap-1.5 text-xs border border-teal-500
-                               dark:border-slate-600 bg-teal-500 dark:bg-slate-700 text-white
-                               dark:text-slate-300 hover:bg-teal-700 rounded-lg transition">
-                    <i class="fa-solid fa-file-arrow-up"></i>
-                    <span class="hidden sm:inline">Import</span>
-                </button>
-
             </div>
         </div>
 
@@ -511,11 +648,11 @@ new class extends Component {
             <span class="text-xs font-medium text-blue-700 dark:text-blue-400">{{ count($selected) }} item dipilih</span>
             <button type="button" wire:click="bulkActivate"
                     class="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg transition">
-                <i class="fa-solid fa-circle-check"></i> Aktifkan
+                <i class="fa-solid fa-circle-check"></i> Approve
             </button>
             <button type="button" wire:click="bulkDeactivate"
                     class="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition">
-                <i class="fa-solid fa-circle-xmark"></i> Nonaktifkan
+                <i class="fa-solid fa-circle-xmark"></i> Reject
             </button>
             <button type="button" wire:click="$set('selected', [])"
                     class="ml-auto text-xs text-slate-400 hover:text-slate-600 transition">

@@ -1,7 +1,4 @@
 import './bootstrap';
-import Alpine from 'alpinejs';
-
-window.Alpine = Alpine;
 
 // register component
 document.addEventListener('alpine:init', () => {
@@ -52,5 +49,3 @@ document.addEventListener('alpine:init', () => {
 
 });
 
-// 🔥 INI YANG HILANG
-Alpine.start();

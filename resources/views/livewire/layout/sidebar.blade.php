@@ -17,7 +17,7 @@
         <div class="ml-3 overflow-hidden whitespace-nowrap transition-all duration-300"
              :class="isExpanded ? 'opacity-100 w-40' : 'opacity-0 w-0'">
             <div class="text-white text-[15px] font-semibold leading-tight">Prima Software</div>
-            <div class="text-[#a8c4f0] text-[8px] tracking-widest uppercase">Standard Plan</div>
+            <div class="text-[#a8c4f0] text-[8px] tracking-widest uppercase">ERP Standard Plan</div>
         </div>
     </div>
 
@@ -46,7 +46,7 @@
             </button>
             <div x-show="open && isExpanded" x-collapse>
                 <a href="#" class="submenu-link {{ request()->routeIs('material.material') ? 'submenu-link-active' : '' }}">Material</a>
-                <a href="#" class="submenu-link">Registration</a>
+                <a href="{{ route('material.registration') }}" wire:navigate class="submenu-link {{ request()->routeIs('material.registration') ? 'submenu-link-active' : '' }}">Registration</a>
                 <a href="#" class="submenu-link">Category</a>
                 <a href="{{ route('material.group') }}" wire:navigate class="submenu-link {{ request()->routeIs('material.group') ? 'submenu-link-active' : '' }}">Group</a>
                 <a href="{{ route('material.uom') }}" wire:navigate
